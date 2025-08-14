@@ -1,0 +1,64 @@
+# ===============================
+# .gitignore for STM32CubeIDE
+# (Eclipse CDT managed build + STM32CubeMX)
+# Keep source, headers, and *.ioc under version control.
+# ===============================
+
+# -------- Build output directories --------
+**/Debug/
+**/Release/
+**/build/
+**/Build/
+**/out/
+**/output/
+
+# -------- Compiled objects, libs, binaries --------
+*.o
+*.obj
+*.d
+*.su
+*.gcno
+*.gcda
+*.a
+*.la
+*.lo
+*.lib
+*.elf
+*.bin
+*.hex
+*.s19
+*.axf
+*.map
+*.lst
+
+# -------- STM32CubeIDE / Eclipse metadata (project-local) --------
+# Keep .project and .cproject so the project opens in the IDE.
+.settings/
+.metadata/
+.externalToolBuilders/
+.stm32cubeide/
+.recommenders/
+.pydevproject
+.factorypath
+.loadpath
+# This file is often auto-regenerated and causes noisy diffs
+language.settings.xml
+
+# -------- CubeMX / misc cache (keep the .ioc file!) --------
+*.ioc-backup
+*.ioc-lock
+*.mxp
+*.mxproject-gen
+
+# -------- Logs & editor temp files --------
+*.log
+*.tmp
+*.bak
+*.swp
+*.swo
+
+# -------- OS junk --------
+.DS_Store
+Thumbs.db
+Desktop.ini
+
