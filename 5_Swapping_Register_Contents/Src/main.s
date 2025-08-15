@@ -1,8 +1,4 @@
 
-// Renaming registers
-val1	.req	r1		// Rename register 1 as val1
-val2	.req	r2		// Rename register 2 as val2
-sum		.req	r3		// Rename register 3 as sum
 
 
 // Directives
@@ -25,7 +21,7 @@ __main:
 			eor	r1, r0, r1			// Exclusive OR store in r1
 			eor r0, r0, r1			// Exclusive OR store in r0
 stop:
-			b stop
+			b stop					// Branch back to stop instruction (loop)
 
 
 			.align

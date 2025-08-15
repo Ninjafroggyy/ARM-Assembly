@@ -30,7 +30,7 @@ __main:
 			mov r1, #200			// Put 200 into registry 1
 			str r1, [r0]			// Store content of r1 (5) into the memory address (C) that r0 is pointing at
 stop:
-			b stop
+			b stop					// Branch back to stop instruction (loop)
 
 
 			.section .data			// Stores to RAM location
