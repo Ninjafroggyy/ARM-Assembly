@@ -7,16 +7,17 @@ Each subfolder is a self-contained **STM32CubeIDE** project targeting the **STM3
 
 ## 📂 Project Index
 
-| No. | Lesson | Summary |
-|-----|--------|---------|
-| 1 | [Using a Startup File](./01_using_startup_file) | Basic register operations with default startup. |
-| 2 | [No Startup File](./02_no_startup_file) | Manual reset handler without startup file. |
-| 3 | [Renaming Registers](./03_renaming_registers) | Using `.req` to alias registers. |
-| 4 | [Allocating Memory](./04_allocating_memory) | Reserving memory with `.space`. |
-| 5 | [Swapping Registers](./05_swapping_registers) | XOR-based register swap. |
-| 6 | [Simple Equations](./06_simple_equations) | Using `.equ` constants in calculations. |
-| 7 | [Import From C](./07_import_from_c) | Calling a C function from assembly. |
-| 8 | [Export From ASM](./08_export_from_asm) | Calling an assembly function from C. |
+| No. | Lesson                                                         | Summary |
+|-----|----------------------------------------------------------------|---------|
+| 1 | [1 Using Startup File](./1_Using_Startup)                      | Basic register operations with default startup. |
+| 2 | [2 No Startup File](./2_No_Startup)                            | Manual reset handler without startup file. |
+| 3 | [3_Renaming_Registers](./3_Renaming_Registers)                 | Using `.req` to alias registers. |
+| 4 | [4_Allocating_Space_in_Memory](./4_Allocating_Space_in_Memory) | Reserving memory with `.space`. |
+| 5 | [5_Swapping_Register_Contents](./5_Swapping_Register_Contents) | XOR-based register swap. |
+| 6 | [6_Simple_Equations](./6_Simple_Equations)                     | Using `.equ` constants in calculations. |
+| 7 | [7_Import_From_C](./7_Import_From_C)                           | Calling a C function from assembly. |
+| 8 | [8_Export_From_ASM](./8_Export_From_ASM)                       | Calling an assembly function from C. |
+
 
 ---
 
