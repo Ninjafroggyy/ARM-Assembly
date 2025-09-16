@@ -17,8 +17,8 @@
 .equ GPIOA_EN, (1 << 0) 	          					// Bit 0 in RCC_AHB1ENR: enable clock for GPIOA
 .equ MODER5_OUT, (1 << 10)          					// MODER register: configure pin 5 as output (01 at bits 11:10)
 .equ LED_ON, (1U << 5)	         	 					// ODR register: set bit 5 high (turn LED on)
-.equ LED_OFF, (1<<0)
-.equ ONESEC, 5333333
+.equ LED_OFF, (1<<0)									// ODR register: overwrite with 0x1 (turn PA5 off but also forces PA0 high)
+.equ ONESEC, 5333333									// Delay loop count value (~1 second at system clock speed)
 
 // Directives
 			.syntax unified
