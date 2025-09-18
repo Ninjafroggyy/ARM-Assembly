@@ -115,7 +115,7 @@ gpio_init:
 
 			bx lr						// Branch to the address in lr (return to caller) with masked state in r0
 stop:
-			b stop						// Branch to self (infinite loop as a safety trap; should never reach here)
+			b stop						// Branch to self
 
 
 			.align
