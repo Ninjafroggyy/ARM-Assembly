@@ -80,9 +80,10 @@
 			.section .text
 
 // Global calls for external files to call
-			.global __main
-
-__main:
+			.global adc_init
+			.global adc_read
+			.global led_init
+			.global led_control
 
 
 adc_init:
