@@ -19,16 +19,13 @@
 .equ MODER_OFFSET,      0x00                             // Offset: GPIO port mode register (MODER)
 .equ GPIOA_MODER,      (GPIOA_BASE + MODER_OFFSET)       // Address of GPIOA_MODER (pin mode config)
 
-.equ ODR_OFFSET,        0x14                             // Offset: GPIO port output data register (ODR)
-.equ GPIOA_ODR,        (GPIOA_BASE + ODR_OFFSET)         // Address of GPIOA_ODR (write output values)
-
 .equ BSRR_OFFSET,       0x18                             // Offset: GPIO port bit set/reset register (BSRR)
 .equ GPIOA_BSRR,       (GPIOA_BASE + BSRR_OFFSET)        // Address of GPIOA_BSRR (atomic bit set/reset)
 
 // GPIOA bitmasks
 .equ MODER5_OUT,       (1 << 10)                         // MODER: configure PA5 as output (MODER[11:10] = 01)
-.equ LED_ON,           (1U << 5)                         // ODR: set bit 5 high → LED on
-.equ LED_OFF,          (1 << 0)                          // ODR: overwrite with 0x1 → LED off but PA0 forced high
+.equ BSRR_5_SET, 	   (1<<5)							 // BSRR register: set PA5 high (LED on)
+.equ BSRR_5_RESET, 	   (1<<21)							 // BSRR register: reset PA5 low (LED off)
 
 // ===============================
 // SysTick (core timer)
@@ -59,7 +56,7 @@
 			.global __main
 
 __main:
-			bl gpioa_init                                   // Branch with link: configure GPIOA and cache ODR address
+			bl gpioa_init                                   // Branch with link: configure GPIOA and cache BSRR address
 	        bl systick_init                                 // Branch with link: configure SysTick timer
 
 loop:
@@ -80,9 +77,9 @@ gpioa_init:
 	        orr r1, r1, #MODER5_OUT                         // OR r1 with MODER5_OUT; store in r1 (set PA5 mode bits to 01)
 	        str r1, [r0]                                    // Store r1 back to [r0] (apply PA5 output mode)
 
-	        /* Cache GPIOA_ODR address and clear r1 */
+	        /* Cache GPIOA_BSRR address and clear r1 */
 	        mov r1, #0                                      // Move immediate 0 into r1
-	        ldr r2, =GPIOA_ODR                              // Load address of GPIOA_ODR into r2 (used by blink)
+	        ldr r2, =GPIOA_BSRR                             // Load address of GPIOA_BSRR into r2 (used by blink)
 
 systick_init:
 	        /* Disable SysTick before configuration */
@@ -126,16 +123,16 @@ delay_loop:
 
 blink:
 	        /* LED on (write full ODR value 0x20) */
-	        mov r1, #LED_ON                                 // Move LED_ON immediate into r1 (0x20)
-	        str r1, [r2]                                    // Store r1 to [r2] (write ODR; PA5=1, other bits cleared unless set in value)
+	        mov r1, #BSRR_5_SET                             // Move BSRR_5_SET immediate into r1 (0x20)
+	        str r1, [r2]                                    // Store to GPIOA_BSRR → sets PA5
 
 	        /* Delay ~N ticks using SysTick */
 	        ldr r0, =900000                                 // Load delay ticks immediate into r0
 	        bl  systick_delay                               // Call systick_delay (blocks until COUNTFLAG set)
 
 	        /* LED off (write full ODR value 0x1) */
-	        mov r1, #LED_OFF                                // Move LED_OFF immediate into r1 (0x1)
-	        str r1, [r2]                                    // Store r1 to [r2] (write ODR; PA5 becomes 0, PA0 becomes 1)
+	        mov r1, #BSRR_5_RESET                           // Move BSRR_5_RESET immediate into r1 (0x1)
+	        str r1, [r2]                                    // Store r1 to [r2] (write to GPIOA_BSRR → resets PA5)
 
 	        /* Delay again */
 	        ldr r0, =900000                                 // Load delay ticks immediate into r0
@@ -144,5 +141,5 @@ blink:
 	        b   blink                                       // Branch back to blink (repeat forever)
 
 			.align
-			.end						// Required to end program
+			.end											// Required to end program
 
