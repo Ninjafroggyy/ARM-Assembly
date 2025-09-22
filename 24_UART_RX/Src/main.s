@@ -25,10 +25,9 @@
 .equ GPIOA_BASE,       0x40020000                       // Base address of GPIOA
 .equ GPIOA_MODER,     (GPIOA_BASE + MODER_OFFSET)       // Address of GPIOA_MODER (configures pin modes)
 .equ GPIOA_AFRL,      (GPIOA_BASE + AFRL_OFFSET)        // Address of GPIOA_AFRL (AF selection for PA0..PA7)
-.equ MODER2_ALT_SLT,  (1 << 5)                          // Value to OR into MODER to set PA2 mode to AF (bit 5 = 1, bit 4 = 0)
-.equ MODER3_ALT_SLT,  (1 << 7)                          //
-.equ PIN2_AF7_SLT,    0x700                             // Value to OR into AFRL to select AF7 for PA2 (bits 11:8 = 0111)
-.equ PIN3_AF7_SLT,    0x7000                            // Value to OR into AFRL to select AF7 for PA3
+
+.equ MODER3_ALT_SLT,  (1 << 7)                           // Value to OR into MODER to set PA3 to AF mode (bit7=1, bit6=0)
+.equ PIN3_AF7_SLT,    0x7000                            // Value to OR into AFRL to select AF7 for PA3 (bits 15:12 = 0111)
 
 // ===============================
 // USART2 (on APB1, base 0x4000 4400)
@@ -61,9 +60,8 @@
 
 // Control/Status bits
 .equ CR1_UARTEN,      (1 << 13)                         // CR1: UE bit → enable USART
-.equ CR1_RE,		  (1 << 2)							//
-.equ SR_TXE,          (1 << 7)                          // SR: TXE bit → transmit data register empty
-.equ SR_RXNE,		  (1 << 5)							//
+.equ CR1_RE,		  (1 << 2)							// CR1: RE (enable receiver)
+.equ SR_RXNE,		  (1 << 5)							// SR: RXNE (read data register not empty)
 
 // Directives
 			.syntax unified
@@ -81,7 +79,7 @@ __main:
 			bl 	uart_init									// Call UART init: enable clocks, set PA2 to AF7, set baud, enable TX
 
 loop:
-			bl	uart_readchar								//
+			bl	uart_readchar								// Call: wait for a received byte; returns character in r0
 
         	b   loop                                        // Repeat endlessly
 
@@ -93,32 +91,18 @@ uart_init:
 	        orr r1, r1, #GPIOA_EN                           // OR r1 with GPIOA_EN → set bit 0 (enable GPIOA clock)
 	        str r1, [r0]                                    // Store updated value back to RCC_AHB1ENR
 
-	        /* Set PA2 to Alternate Function mode (MODER[5:4] = 10) */
-	        ldr r0, =GPIOA_MODER                            // Load address of GPIOA_MODER into r0
-	        ldr r1, [r0]                                    // Load current MODER into r1
-	        bic r1, r1, #0x30                               // Clear bits 5:4 (PA2 mode bits) to 00 (input) first
-	        orr r1, r1, #MODER2_ALT_SLT                     // OR r1 with (1<<5) → set bit 5 → bits 5:4 = 10 (AF mode)
-	        str r1, [r0]                                    // Write back to GPIOA_MODER
-
 			/* Set PA3 mode as ALT */
 			ldr r0, =GPIOA_MODER                            // Load address of GPIOA_MODER into r0
 	        ldr r1, [r0]                                    // Load current MODER into r1
-	        bic r1, r1, #0xC0                               // Clear bits 5:4 (PA2 mode bits) to 00 (input) first
-	        orr r1, r1, #MODER3_ALT_SLT                     // OR r1 with (1<<5) → set bit 5 → bits 5:4 = 10 (AF mode)
+	        bic r1, r1, #0xC0                               // Clear bits 7:6 (PA3 mode bits) to 00
+	        orr r1, r1, #MODER3_ALT_SLT                     // OR r1 with (1<<7) → bits 7:6 = 10 (AF mode)
 	        str r1, [r0]                                    // Write back to GPIOA_MODER
 
-	        /* Select AF7 for PA2 (USART2_TX): AFRL[11:8] = 0b0111 */
-	        ldr r0, =GPIOA_AFRL                             // Load address of GPIOA_AFRL into r0
-	        ldr r1, [r0]                                    // Load current AFRL into r1
-	        bic r1, r1, #0xF00                              // Clear bits 11:8 (AF field for PA2)
-	        orr r1, r1, #PIN2_AF7_SLT                       //
-	        str r1, [r0]                                    // Write back to GPIOA_AFRL
-
-			/* Select AF7 for PA3 */
+			/* Select AF7 for PA3 (USART2_RX): AFRL[15:12] = 0b0111 */
 			ldr r0, =GPIOA_AFRL                             // Load address of GPIOA_AFRL into r0
 	        ldr r1, [r0]                                    // Load current AFRL into r1
-	        bic r1, r1, #0xF000                             //
-	        orr r1, r1, #PIN3_AF7_SLT                       //
+	        bic r1, r1, #0xF000                             // Clear bits 15:12 (AF field for PA3)
+	        orr r1, r1, #PIN3_AF7_SLT                       // OR r1 with 0x7000 → set bits 15:12 to 0111 (AF7)
 	        str r1, [r0]                                    // Write back to GPIOA_AFRL
 
 
@@ -134,16 +118,12 @@ uart_init:
 	        str r1, [r0]                                    // Write BRR
 
 	        /* Enable UART RX */
-	        ldr	r0, =UART2_CR1								//
-	        mov	r1, #CR1_CNF								//
-	        orr	r1, r1, #CR1_RE								//
-	        str	r1, [r0]									//
+	        ldr r0, =UART2_CR1                              // Load address of USART2 CR1 into r0
+	        mov r1, #CR1_CNF                                // Move CR1 base config (TE=1, UE=0) into r1
+	        orr r1, r1, #CR1_RE                             // OR with RE → enable receiver
+	        str r1, [r0]                                    // Write CR1 (TE=1, RE=1, UE=0)
 
 	        /* Configure control registers (8N1, TX enable, UE later) */
-	        ldr r0, =UART2_CR1                              // Load address of USART2 CR1 into r0
-	        mov r1, #CR1_CNF                                // Move CR1 config (TE=1, UE=0 for now) into r1
-	        str r1, [r0]                                    // Write CR1
-
 	        ldr r0, =UART2_CR2                              // Load address of USART2 CR2 into r0
 	        mov r1, #CR2_CNF                                // Move CR2 config (1 stop bit) into r1
 	        str r1, [r0]                                    // Write CR2
@@ -165,32 +145,15 @@ uart_readchar:
 
 wait_txe:
 	        ldr r2, [r1]                                    // Load current SR into r2
-	        add r2, #SR_RXNE                            	//
+	        and r2, r2, #SR_RXNE                            // AND r2 with RXNE mask → result is 0 (no data) or non-zero (data ready)
 	        cmp r2, #0x00                                   // Compare r2 with 0 (is TXE still 0?)
 
 	        beq wait_txe                                    // If equal, TXE=0 → wait until TXE becomes 1
 
 	        ldr r3, =UART2_DR                               // Load address of USART2 DR into r2
-	        ldr r0, [r3]                               		//
+	        ldr r0, [r3]                               		// Load received data from DR into r0 (return value)
 
 			bx  lr                                          // Return from uart_readchar
-
-uart_outchar:
-        	ldr r1, =UART2_SR                               // Load address of USART2 SR into r1
-
-wait_txe2:
-	        ldr r2, [r1]                                    // Load current SR into r2
-	        and r2, r2, #SR_TXE                             // Mask SR with TXE bit → r2 = TXE (0 or non-zero)
-	        cmp r2, #0x00                                   // Compare r2 with 0 (is TXE still 0?)
-
-	        beq wait_txe2                                   // If equal, TXE=0 → wait until TXE becomes 1
-
-	        // TXE=1 (data register empty): write the character
-	        mov r1, r0                                      // Move the character from r0 into r1 (source for store)
-	        ldr r2, =UART2_DR                               // Load address of USART2 DR into r2
-	        str r1, [r2]                                    // Store r1 to DR (launch transmit of this character)
-
-	        bx  lr                                          // Return from uart_outchar
 
 
 
