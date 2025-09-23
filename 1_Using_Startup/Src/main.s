@@ -1,16 +1,20 @@
 
 
+// ===============================
 // Directives
-			.syntax unified
-			.cpu cortex-m4
-			.fpu softvfp
-			.thumb
+// ===============================
+	        .syntax unified                 // Use Unified Assembler Syntax (ARM/Thumb)
+	        .cpu cortex-m4                  // Target CPU core is Cortex-M4
+	        .fpu softvfp                    // Use software floating point (not used here, but set for project)
+	        .thumb                          // Generate Thumb instruction set
 
-// Code Section
-			.section .text
+// ===============================
+// Code section
+// ===============================
+	        .section .text
 
-// Global calls for external files to call
-			.global __main
+	        .global __main                  // Export __main so the linker can find the program entry
+
 
 __main:
 			mov r5, #45			// Put the number 45 into register 5
